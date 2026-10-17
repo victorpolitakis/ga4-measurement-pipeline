@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product | Northwind Outdoor</title>
+<link rel="stylesheet" href="css/style.css">
+<!-- Phase 4: Consent Mode default command goes here. It must run before the GTM snippet. -->
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-53QB29FG');</script>
+<!-- End Google Tag Manager -->
+<script src="js/shop.js"></script>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-53QB29FG"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<header>
+  <a class="brand" href="index.html">Northwind Outdoor</a>
+  <nav>
+    <a href="index.html">Shop</a>
+    <a href="contact.html">Bulk orders</a>
+    <a href="files/size-guide.pdf">Size guide (PDF)</a>
+    <a href="cart.html">Cart (<span id="cart-count">0</span>)</a>
+  </nav>
+</header>
+<main>
+<div class="card" id="product"></div>
+</main>
+<footer>Northwind Outdoor is a fictional store built to demonstrate a GA4 measurement setup. No real orders are taken.</footer>
+<script>
+const id = new URLSearchParams(location.search).get("id");
+const p = CATALOG[id];
+const box = document.getElementById("product");
+if (!p) {
+  box.innerHTML = "<p>Product not found.</p>";
+} else {
+  box.innerHTML = `<h1>${p.item_name}</h1><p class="muted">${p.item_category}</p>
+    <p class="price">€${p.price.toFixed(2)}</p>
+    <label for="qty">Quantity</label><input id="qty" type="number" min="1" value="1" style="max-width:100px">
+    <p><button class="btn" id="add">Add to cart</button> <a class="btn secondary" href="cart.html">View cart</a></p>
+    <p class="notice" id="added" hidden>Added to cart.</p>`;
+
+  // view_item: fires once when the product page loads.
+  const item = toItem(id, 1);
+  pushEcommerce("view_item", { currency: CURRENCY, value: item.price, items: [item] });
+
+  // add_to_cart: fires on each click, with the chosen quantity.
+  document.getElementById("add").addEventListener("click", () => {
+    const qty = Math.max(1, parseInt(document.getElementById("qty").value, 10) || 1);
+    addToCart(id, qty);
+    document.getElementById("added").hidden = false;
+  });
+}
+</script>
+</body>
+</html>

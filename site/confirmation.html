@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order confirmed | Northwind Outdoor</title>
+<link rel="stylesheet" href="css/style.css">
+<!-- Phase 4: Consent Mode default command goes here. It must run before the GTM snippet. -->
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-53QB29FG');</script>
+<!-- End Google Tag Manager -->
+<script src="js/shop.js"></script>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-53QB29FG"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<header>
+  <a class="brand" href="index.html">Northwind Outdoor</a>
+  <nav>
+    <a href="index.html">Shop</a>
+    <a href="contact.html">Bulk orders</a>
+    <a href="files/size-guide.pdf">Size guide (PDF)</a>
+    <a href="cart.html">Cart (<span id="cart-count">0</span>)</a>
+  </nav>
+</header>
+<main>
+<h1>Thank you!</h1>
+<div class="card" id="confirm"></div>
+</main>
+<footer>Northwind Outdoor is a fictional store built to demonstrate a GA4 measurement setup. No real orders are taken.</footer>
+<script>
+const orderId = new URLSearchParams(location.search).get("order");
+let order = null;
+try { order = JSON.parse(sessionStorage.getItem("nw_order_" + orderId)); } catch (e) {}
+const box = document.getElementById("confirm");
+
+if (!order) {
+  box.innerHTML = "<p>Order not found.</p>";
+} else {
+  box.innerHTML = `<p>Order <strong>${order.transaction_id}</strong> confirmed.</p>
+    <p class="price">Total: €${order.value.toFixed(2)}</p>`;
+
+  // purchase: sent once per order. A refresh of this page must not send it again,
+  // so the IDs already sent are remembered. GA4 also deduplicates on transaction_id,
+  // but stopping the duplicate at the source keeps every downstream tool clean.
+  let sent = [];
+  try { sent = JSON.parse(localStorage.getItem("nw_sent_orders")) || []; } catch (e) {}
+  if (!sent.includes(order.transaction_id)) {
+    pushEcommerce("purchase", {
+      transaction_id: order.transaction_id,
+      currency: CURRENCY,
+      value: order.value,
+      items: order.items,
+    });
+    sent.push(order.transaction_id);
+    try { localStorage.setItem("nw_sent_orders", JSON.stringify(sent.slice(-50))); } catch (e) {}
+  }
+}
+</script>
+</body>
+</html>

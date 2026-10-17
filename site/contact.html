@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bulk orders | Northwind Outdoor</title>
+<link rel="stylesheet" href="css/style.css">
+<!-- Phase 4: Consent Mode default command goes here. It must run before the GTM snippet. -->
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-53QB29FG');</script>
+<!-- End Google Tag Manager -->
+<script src="js/shop.js"></script>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-53QB29FG"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<header>
+  <a class="brand" href="index.html">Northwind Outdoor</a>
+  <nav>
+    <a href="index.html">Shop</a>
+    <a href="contact.html">Bulk orders</a>
+    <a href="files/size-guide.pdf">Size guide (PDF)</a>
+    <a href="cart.html">Cart (<span id="cart-count">0</span>)</a>
+  </nav>
+</header>
+<main>
+<h1>Bulk orders for clubs and schools</h1>
+<div class="card">
+  <form id="lead-form" novalidate>
+    <label for="company">Organisation</label>
+    <input id="company" name="company" required>
+    <label for="email">Work email</label>
+    <input id="email" name="email" type="email" required>
+    <label for="lead_type">Organisation type</label>
+    <select id="lead_type" name="lead_type">
+      <option value="club">Outdoor club</option>
+      <option value="school">School</option>
+      <option value="other">Other</option>
+    </select>
+    <label for="message">What do you need?</label>
+    <textarea id="message" name="message" rows="3"></textarea>
+    <p><button class="btn" type="submit">Request a quote</button></p>
+  </form>
+  <p class="notice" id="status" hidden></p>
+  <p class="muted">Tip for testing: an organisation name containing "fail" simulates a server error.</p>
+</div>
+</main>
+<footer>Northwind Outdoor is a fictional store built to demonstrate a GA4 measurement setup. No real orders are taken.</footer>
+<script>
+const form = document.getElementById("lead-form");
+const status = document.getElementById("status");
+
+// Stand-in for a real POST to the backend. Resolves or rejects like a server would.
+function submitToServer(data) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => (/fail/i.test(data.company) ? reject(new Error("server error")) : resolve()), 400);
+  });
+}
+
+let submitting = false;
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (submitting) return;               // blocks double-clicks from creating two leads
+  if (!form.checkValidity()) {          // invalid form: no event, the user just fixes it
+    status.hidden = false;
+    status.textContent = "Please fill in your organisation and a valid email.";
+    return;
+  }
+  submitting = true;
+  const data = Object.fromEntries(new FormData(form));
+  try {
+    await submitToServer(data);
+    // generate_lead: only after the server confirmed. No email or name is pushed:
+    // personal data never goes into event parameters.
+    window.dataLayer.push({ event: "generate_lead", lead_type: data.lead_type, value: 50, currency: CURRENCY });
+    form.reset();
+    status.hidden = false;
+    status.textContent = "Thanks, we'll reply within one business day.";
+  } catch (err) {
+    status.hidden = false;
+    status.textContent = "Something went wrong, please try again.";
+  } finally {
+    submitting = false;
+  }
+});
+</script>
+</body>
+</html>
