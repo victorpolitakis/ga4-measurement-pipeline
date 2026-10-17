@@ -10,12 +10,12 @@
   - Web developer: implements the data layer.
   - DPO / legal: approves consent behaviour.
 
-## 2. Business objectives → KPIs
+## 2. Business objectives and KPIs
 | # | Business objective | KPI | Why this KPI | Source |
 |---|---|---|---|---|
 | O1 | Grow online sales | Ecommerce conversion rate, revenue, average order value | Conversion rate shows how well the site turns visits into orders, average order value shows how valuable each order is, and revenue is the end result. | GA4 `purchase` |
 | O2 | Generate B2B leads | Leads per week, lead rate per session | Shows which platforms, content, ads or search queries bring in the most leads, so spend can be shifted toward them. | GA4 `generate_lead` |
-| O3 | Find where shoppers drop off | Step conversion: view → cart → checkout → purchase | A funnel exploration shows each step of the journey and where shoppers drop off. | GA4 funnel / BigQuery |
+| O3 | Find where shoppers drop off | Step conversion from product view to cart, checkout and purchase | A funnel exploration shows each step of the journey and where shoppers drop off. | GA4 funnel / BigQuery |
 | O4 | Stay privacy-compliant in the EEA | Consent rate (granted / total) | Shows how much traffic can be measured in full. A higher rate means more observed conversions and larger remarketing audiences. A sudden drop usually means a broken banner or consent update, not a change in user behaviour, so it doubles as a health check for the implementation. | BigQuery `privacy_info` |
 
 ## 3. Tracking plan
@@ -24,12 +24,12 @@ Event names follow GA4 **recommended events** wherever one exists, so GA4's buil
 | Event | Fires when | Parameters | Key event | Recommended / custom | Implemented via |
 |---|---|---|---|---|---|
 | `page_view` | Every page load | page_location, page_title | No | Automatic | Google tag |
-| `view_item` | Product page loads | currency, value, items[] | No | Recommended | dataLayer → GTM |
-| `add_to_cart` | "Add to cart" clicked | currency, value, items[] | No | Recommended | dataLayer → GTM |
-| `begin_checkout` | Checkout page loads | currency, value, items[] | No | Recommended | dataLayer → GTM |
-| `purchase` | Order confirmation shown | **transaction_id**, currency, value, items[] | **Yes** | Recommended | dataLayer → GTM |
-| `generate_lead` | B2B contact form submitted successfully | lead_type, value (estimated), currency | **Yes** | Recommended | dataLayer → GTM |
-| `cta_click` | A promo banner / hero button is clicked | cta_id, cta_text | No | Custom | dataLayer → GTM |
+| `view_item` | Product page loads | currency, value, items[] | No | Recommended | dataLayer push, read by GTM |
+| `add_to_cart` | "Add to cart" clicked | currency, value, items[] | No | Recommended | dataLayer push, read by GTM |
+| `begin_checkout` | Checkout page loads | currency, value, items[] | No | Recommended | dataLayer push, read by GTM |
+| `purchase` | Order confirmation shown | **transaction_id**, currency, value, items[] | **Yes** | Recommended | dataLayer push, read by GTM |
+| `generate_lead` | B2B contact form submitted successfully | lead_type, value (estimated), currency | **Yes** | Recommended | dataLayer push, read by GTM |
+| `cta_click` | A promo banner / hero button is clicked | cta_id, cta_text | No | Custom | dataLayer push, read by GTM |
 | `file_download` | Size-guide PDF clicked | file_name, file_extension | No | Automatic (enhanced measurement) | GA4 setting |
 
 **Item fields** (used in `items[]`): item_id, item_name, item_category, price, quantity.
@@ -58,4 +58,4 @@ Event names follow GA4 **recommended events** wherever one exists, so GA4's buil
 ## 7. Acceptance criteria
 - Every event in section 3 fires once, with all its parameters, in GTM Preview and GA4 DebugView.
 - No GA4 cookies are set before consent. Hits carry the correct consent state.
-- The GA4 → BigQuery export runs daily, and the data-quality checks pass.
+- The daily BigQuery export of GA4 data runs, and the data-quality checks pass.
