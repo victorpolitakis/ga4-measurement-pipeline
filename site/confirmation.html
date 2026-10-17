@@ -49,6 +49,9 @@ if (!order) {
   // purchase: sent once per order. A refresh of this page must not send it again,
   // so the IDs already sent are remembered. GA4 also deduplicates on transaction_id,
   // but stopping the duplicate at the source keeps every downstream tool clean.
+  // On a real site this check belongs on the server (the order record knows
+  // whether its purchase was already reported); localStorage is a demo stand-in
+  // and fails across devices, browsers and cleared storage.
   let sent = [];
   try { sent = JSON.parse(localStorage.getItem("nw_sent_orders")) || []; } catch (e) {}
   if (!sent.includes(order.transaction_id)) {
