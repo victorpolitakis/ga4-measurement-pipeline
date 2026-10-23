@@ -1,0 +1,1 @@
+Queries on this project's own GA4 export. `{dataset}` stands for the export dataset (`analytics_<property id>`); `qa/bq_checks.py` and `qa/reconcile.py` fill it in. All traffic in it is synthetic (`qa/traffic.py`) or from testing.
