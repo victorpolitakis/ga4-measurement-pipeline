@@ -24,17 +24,21 @@ Event names follow GA4 **recommended events** wherever one exists, so GA4's buil
 | Event | Fires when | Parameters | Key event | Recommended / custom | Implemented via |
 |---|---|---|---|---|---|
 | `page_view` | Every page load | page_location, page_title | No | Automatic | Google tag |
-| `view_item` | Product page loads | currency, value, items[] | No | Recommended | dataLayer push, read by GTM |
-| `add_to_cart` | "Add to cart" clicked | currency, value, items[] | No | Recommended | dataLayer push, read by GTM |
-| `begin_checkout` | Checkout page loads | currency, value, items[] | No | Recommended | dataLayer push, read by GTM |
-| `purchase` | Order confirmation shown | **transaction_id**, currency, value, items[] | **Yes** | Recommended | dataLayer push, read by GTM |
+| `view_item` | Product page loads | currency, value, items[], item_count | No | Recommended | dataLayer push, read by GTM |
+| `add_to_cart` | "Add to cart" clicked | currency, value, items[], item_count | No | Recommended | dataLayer push, read by GTM |
+| `begin_checkout` | Checkout page loads | currency, value, items[], item_count | No | Recommended | dataLayer push, read by GTM |
+| `purchase` | Order confirmation shown | **transaction_id**, currency, value, items[], item_count | **Yes** | Recommended | dataLayer push, read by GTM |
 | `generate_lead` | B2B contact form submitted successfully | lead_type, value (estimated), currency | **Yes** | Recommended | dataLayer push, read by GTM |
 | `cta_click` | A promo banner / hero button is clicked | cta_id, cta_text | No | Custom | dataLayer push, read by GTM |
 | `file_download` | Size-guide PDF clicked | file_name, file_extension | No | Automatic (enhanced measurement) | GA4 setting |
 
 **Item fields** (used in `items[]`): item_id, item_name, item_category, price, quantity.
 
-**Custom dimensions to register in GA4:** `cta_id` (event scope), `lead_type` (event scope). Without registering them, they still reach BigQuery but don't appear in GA4 reports.
+**`item_count`** is the number of units in `items[]`, computed in GTM by a Custom JavaScript variable. It lets reports show units per checkout or order without unnesting items.
+
+**Registered in GA4:** custom dimensions `cta_id` and `lead_type`, and custom metric `item_count` (all event scope). Without registration, a parameter still reaches BigQuery but doesn't appear in GA4 reports.
+
+**Not registered:** `cta_text`. It repeats what `cta_id` already identifies and changes whenever the button copy changes, so it would split one button into several report rows. It stays available in BigQuery for checking copy tests.
 
 ## 4. Data quality rules
 - `purchase` must always have a unique `transaction_id`. GA4 deduplicates purchases with the same ID, and so do the BigQuery checks.
