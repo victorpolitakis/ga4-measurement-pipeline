@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bulk orders | Northwind Outdoor</title>
 <link rel="stylesheet" href="css/style.css">
-<!-- Phase 4: Consent Mode default command goes here. It must run before the GTM snippet. -->
+<!-- Consent Mode default: must run before the GTM snippet. -->
+<script src="js/consent.js"></script>
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -51,7 +52,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <p class="muted">Tip for testing: an organisation name containing "fail" simulates a server error.</p>
 </div>
 </main>
-<footer>Northwind Outdoor is a fictional store built to demonstrate a GA4 measurement setup. No real orders are taken.</footer>
+<footer>Northwind Outdoor is a fictional store built to demonstrate a GA4 measurement setup. No real orders are taken. <a href="#" id="cookie-settings">Cookie settings</a></footer>
 <script>
 const form = document.getElementById("lead-form");
 const status = document.getElementById("status");
