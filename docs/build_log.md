@@ -37,3 +37,18 @@ One entry per work session: what was done, what broke, how it was fixed.
   - Anchored the trigger regex: `^(view_item|add_to_cart|begin_checkout|purchase)$`.
   - Allowed the demo site in the ad blocker for testing. For a client, the data lost to blockers is a reason to look at server-side tagging on a first-party subdomain, which still has to respect the user's consent choice.
   - Turned automatic user-provided data detection off and published v2, so the container matches the "no personal data" rule in the tracking plan.
+
+## Phase 4 — Consent Mode v2 (advanced)
+
+- Date: 2026-10-23
+- Done:
+  - `site/js/consent.js`, loaded synchronously in every page's `<head>` before the GTM snippet. It sets all four signals (`ad_storage`, `analytics_storage`, `ad_user_data`, `ad_personalization`) to `denied` by default, turns on `ads_data_redaction`, and re-applies a saved choice before GTM loads.
+  - A demo banner with Accept all, Analytics only and Reject all, plus a "Cookie settings" link in every footer to change the choice later. A real site would use a certified CMP.
+  - Advanced mode, not basic: Google tags still load with consent denied and send cookieless pings, so GA4 sees that visits and conversions happened without being able to tie them to a person.
+- Checked:
+  - Locally, from the `/g/collect` requests: before any choice `gcs=G100` and no `_ga` cookie; after Accept all `gcs=G111` and `_ga` / `_ga_<id>` cookies appear.
+  - On the live site in Tag Assistant's Consent tab, all three buttons (screenshots in `docs/img/`). The on-page default is always Denied; the update matches the button.
+  - Reject all keeps `gcs=G100`, the same as no choice. The difference is in `gcd`, which records the default and the update separately, so an explicit refusal can be told apart from no answer.
+- Broke / surprised me:
+  - Hits were blocked again, this time by the browser itself: Firefox-based browsers block `google-analytics.com` in private windows, and Midori blocked it even with a tracking-protection exception. The `gcs` value can still be read from the blocked request's URL, and `_ga` is written by JavaScript in the page, so the consent check doesn't depend on the hit arriving.
+  - GTM's Consent Overview listed every tag as "Consent Not Configured" although each Google tag has built-in consent checks. It only means the "additional consent" setting was never chosen. For Google tags the right answer is "No additional consent required"; requiring it would stop them firing without consent, which is basic mode.

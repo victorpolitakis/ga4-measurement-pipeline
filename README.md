@@ -43,17 +43,21 @@ All four ecommerce events also carry `item_count`, the number of units in `items
 
 Every change went through Preview, Tag Assistant and GA4 DebugView before it was published as a named version.
 
+## Consent
+
+Consent Mode v2 in advanced mode. `site/js/consent.js` runs before GTM and sets every consent signal to denied until the visitor picks Accept all, Analytics only or Reject all. Before a choice, Google tags send cookieless pings and set no `_ga` cookie; after Accept all, cookies are set and hits carry `gcs=G111`. Tag Assistant screenshots of the three choices are in [docs/img](docs/img).
+
 ## Status
 
-Done: the tracking plan, the demo shop and its data layer, the GTM container, the GA4 configuration (key events, custom dimensions) and the daily BigQuery export.
+Done: the tracking plan, the demo shop and its data layer, the GTM container, the GA4 configuration (key events, custom dimensions), the daily BigQuery export and Consent Mode v2.
 
-Next: Consent Mode v2, SQL analysis in BigQuery, automated tag QA in Python, and a deployment guide with a troubleshooting runbook.
+Next: SQL analysis in BigQuery, automated tag QA in Python, and a deployment guide with a troubleshooting runbook.
 
 ## Repository layout
 
 ```
 site/   demo shop (HTML, CSS, shop.js), deployed to GitHub Pages
-docs/   requirements, tracking plan, build log
+docs/   requirements, tracking plan, build log, screenshots
 ```
 
 ## Run locally
