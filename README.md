@@ -4,6 +4,9 @@ A small, end-to-end GA4 implementation for a fictional outdoor shop, Northwind O
 
 - **Demo shop:** https://victorpolitakis.github.io/ga4-measurement-pipeline/
 - **Requirements and tracking plan:** [docs/01_BRD_and_tracking_plan.md](docs/01_BRD_and_tracking_plan.md)
+- **Deployment guide:** [docs/02_deployment_guide.md](docs/02_deployment_guide.md)
+- **Troubleshooting runbook:** [docs/03_troubleshooting_runbook.md](docs/03_troubleshooting_runbook.md)
+- **SQL results on Google's public GA4 sample:** [sql/public/RESULTS.md](sql/public/RESULTS.md)
 - **Build log** (what broke and how it was fixed): [docs/build_log.md](docs/build_log.md)
 
 ## Data flow
@@ -47,17 +50,35 @@ Every change went through Preview, Tag Assistant and GA4 DebugView before it was
 
 Consent Mode v2 in advanced mode. `site/js/consent.js` runs before GTM and sets every consent signal to denied until the visitor picks Accept all, Analytics only or Reject all. Before a choice, Google tags send cookieless pings and set no `_ga` cookie; after Accept all, cookies are set and hits carry `gcs=G111`. Tag Assistant screenshots of the three choices are in [docs/img](docs/img).
 
-## Status
+## Traffic
 
-Done: the tracking plan, the demo shop and its data layer, the GTM container, the GA4 configuration (key events, custom dimensions), the daily BigQuery export and Consent Mode v2.
+All traffic in the GA4 property is synthetic or from testing; no real person visits the shop. `qa/traffic.py` simulates a mock campaign, `autumn_tents`, from three sources (`google / cpc`, `newsletter / email`, `instagram / social`). Each simulated visitor gets a fresh browser, makes a random consent choice and goes some way down the funnel; some send the B2B form, one with a server error. The script writes what every visitor did to a CSV in `qa/output/`, and `qa/reconcile.py` compares that ground truth with what reached BigQuery.
 
-Next: SQL analysis in BigQuery, automated tag QA in Python, and a deployment guide with a troubleshooting runbook.
+First run (150 visitors): 24 purchases, 13 of them with analytics consent. GA4 Realtime showed exactly those 13; the other 11 arrived as cookieless pings that can't be tied to a user.
+
+## SQL
+
+- `sql/public/`: funnel, channels, revenue by item, duplicate transactions, and two window-function queries (`ROW_NUMBER`, `LAG`) over the 4.3M events of Google's public GA4 sample. Results and what they show: [RESULTS.md](sql/public/RESULTS.md).
+- `sql/own/`: consent rate, campaign attribution and events by consent state on this project's own export.
+
+## QA
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install -r qa/requirements.txt && .venv/bin/python -m playwright install chromium
+.venv/bin/python qa/tag_qa.py      # GA4 hits across consent states, funnel, leads, PII (sends nothing to GA4)
+.venv/bin/python qa/mp_validate.py # Measurement Protocol payloads against the debug endpoint (needs GA4_API_SECRET in .env)
+.venv/bin/python qa/bq_checks.py   # data quality on the BigQuery export (needs gcloud auth login)
+```
+
+Latest `tag_qa.py` run: 21 checks passed, 0 failed, 1 known issue (a `cta_click` from a link that navigates at once is lost in headless Chromium; see the runbook).
 
 ## Repository layout
 
 ```
-site/   demo shop (HTML, CSS, shop.js), deployed to GitHub Pages
-docs/   requirements, tracking plan, build log, screenshots
+site/   demo shop (HTML, CSS, JS), deployed to GitHub Pages
+docs/   requirements and tracking plan, deployment guide, runbook, build log, screenshots
+sql/    BigQuery queries: public/ on Google's sample, own/ on this project's export
+qa/     tag QA, Measurement Protocol validation, BigQuery checks, synthetic traffic
 ```
 
 ## Run locally
