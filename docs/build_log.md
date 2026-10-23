@@ -51,4 +51,24 @@ One entry per work session: what was done, what broke, how it was fixed.
   - Reject all keeps `gcs=G100`, the same as no choice. The difference is in `gcd`, which records the default and the update separately, so an explicit refusal can be told apart from no answer.
 - Broke / surprised me:
   - Hits were blocked again, this time by the browser itself: Firefox-based browsers block `google-analytics.com` in private windows, and Midori blocked it even with a tracking-protection exception. The `gcs` value can still be read from the blocked request's URL, and `_ga` is written by JavaScript in the page, so the consent check doesn't depend on the hit arriving.
-  - GTM's Consent Overview listed every tag as "Consent Not Configured" although each Google tag has built-in consent checks. It only means the "additional consent" setting was never chosen. For Google tags the right answer is "No additional consent required"; requiring it would stop them firing without consent, which is basic mode.
+  - GTM's Consent Overview listed every tag as "Consent Not Configured" although each Google tag has built-in consent checks. It only means the "additional consent" setting was never chosen. For Google tags the right answer is "No additional consent required"; requiring it would stop them firing without consent, which is basic mode. Set on all four tags and published as "v4 - consent settings for Google tags".
+
+## Phase 5 and 6 — Synthetic traffic, QA and SQL
+
+- Date: 2026-10-23
+- Done:
+  - `qa/traffic.py` (Playwright): 150 synthetic visitors of the mock `autumn_tents` campaign at 06:05 UTC, with a seed so the run can be repeated. Ground truth: 24 purchases, 8 accepted leads, 1 failed lead, 1 confirmation refresh; consent all 94, analytics only 15, reject 41.
+  - GA4 Realtime right after the run matched the consented part exactly: 110 users (109 synthetic plus my own session), 104 `view_item`, 17 `begin_checkout`, 13 `purchase` (12 with Accept all, 1 with Analytics only), 4 `generate_lead`. The 11 purchases made after Reject all aren't there: they arrived as cookieless pings, and the demo has far too little traffic for GA4's modeling.
+  - `qa/tag_qa.py`: 22 checks on the hits the browser sends, blocked before they reach GA4. 21 pass, 1 known issue.
+  - `qa/mp_validate.py`: a valid Measurement Protocol purchase passes the debug endpoint; an event named `add-to-cart` is rejected with `NAME_INVALID`.
+  - Seven queries on the public GA4 sample (`sql/public/`, results in `RESULTS.md`); the event total is 4,295,584, the same as the baseline. Consent rate, attribution and events-by-consent queries for the own export (`sql/own/`), `qa/bq_checks.py` and `qa/reconcile.py`.
+  - GA4: custom metric `item_count` registered.
+- Broke / surprised me:
+  - The first QA run failed 11 checks that were fine. `time.sleep` in the polling loop blocked Playwright's sync API, so the request handler never ran while the script waited. Waiting with `page.wait_for_timeout` fixed it.
+  - `cta_click` reaches the data layer and the tag fires, but GA4 holds the hit for a few seconds to batch it, and the hero link navigates at once. In headless Chromium the hit never leaves. My own click in a normal browser on 2026-10-18 did arrive in BigQuery, so it may be specific to headless runs; the reconciliation of the 150-visitor run will show it.
+  - Public sample: in November 2020 `add_to_cart` (7,674) is lower than `begin_checkout` (9,546), the opposite of December. It looks like `add_to_cart` wasn't firing everywhere that month.
+  - The `.env` with the Measurement Protocol secret had been saved in `site/`, the folder GitHub Pages publishes. It was git-ignored and never committed, so it was never deployed; it now sits at the repo root.
+  - The `bq` CLI read the SQL files' leading `--` comment as a flag. The SQL now goes in on stdin.
+  - The consent-rate query first counted events with no consent signal (before Consent Mode existed) as "not granted", which showed a 0% rate. NULL is now left out of the rate.
+  - Preview sessions are attributed to `tagassistant.google.com / referral`.
+
