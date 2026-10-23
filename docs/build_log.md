@@ -15,7 +15,7 @@ One entry per work session: what was done, what broke, how it was fixed.
   - `purchase` fires once per order: confirmed orders are remembered, so a refresh of the confirmation page sends nothing. On a real site this check belongs on the server.
   - `generate_lead` fires only after the (simulated) server accepts the form, never on the click, and a flag stops double-clicks from creating two leads. No email or name goes into the event. An organisation name containing "fail" simulates a server error, to test that no lead is sent.
   - `cta_click` uses one click listener on the document and `closest("[data-cta-id]")`, so a new tracked button only needs an HTML attribute, and clicks on an icon inside the button still count.
-- Open issue (found in review on 2026-10-18): the cart in `localStorage` is parsed with a try/catch, which catches broken JSON but not valid JSON with a missing `quantity`. That would send `value: NaN`. Only the site's own code writes the cart, so it can't happen in the demo, but it's the kind of case the Python QA checks should catch.
+- Found in review on 2026-10-18 and fixed on 2026-10-23: the cart in `localStorage` is parsed with a try/catch, which catches broken JSON but not valid JSON with a missing `quantity`, which would have sent `value: NaN`. `cartItems()` now drops lines with an unknown product or a quantity that is not a positive whole number.
 
 ## Phase 3 — GTM and GA4
 

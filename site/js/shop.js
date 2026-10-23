@@ -61,7 +61,11 @@ function addToCart(itemId, quantity) {
 }
 
 function cartItems() {
-  return readCart().filter((l) => CATALOG[l.item_id]).map((l) => toItem(l.item_id, l.quantity));
+  // Valid JSON can still hold a bad line (unknown product, missing or broken quantity).
+  // Dropping it here keeps value from becoming NaN in begin_checkout and purchase.
+  return readCart()
+    .filter((l) => CATALOG[l.item_id] && Number.isInteger(l.quantity) && l.quantity > 0)
+    .map((l) => toItem(l.item_id, l.quantity));
 }
 
 function renderCartCount() {
