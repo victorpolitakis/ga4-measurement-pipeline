@@ -22,6 +22,8 @@ from urllib.parse import parse_qs, urlparse
 
 from playwright.async_api import async_playwright
 
+import browser_fix
+
 BASE_URL = "https://victorpolitakis.github.io/ga4-measurement-pipeline/"
 CAMPAIGN = "autumn_tents"
 
@@ -89,6 +91,7 @@ async def settle(page):
 async def run_visitor(browser, base_url, v, send_hits=True):
     utm = f"utm_source={v['source']}&utm_medium={v['medium']}&utm_campaign={CAMPAIGN}"
     context = await browser.new_context(user_agent=USER_AGENT, locale="en-GB")
+    await context.add_init_script(browser_fix.FLUSH_ON_CLICK)
     if not send_hits:
         # Dry run: the pages and the data layer work as usual, but nothing reaches GA4.
         await context.route("**/g/collect**", lambda route: route.abort())
@@ -144,6 +147,11 @@ async def run_visitor(browser, base_url, v, send_hits=True):
             await settle(page)
         return v
     finally:
+        try:
+            await page.evaluate(browser_fix.FLUSH_NOW)  # send what is still batched
+            await page.wait_for_timeout(500)
+        except Exception:
+            pass
         await context.close()
 
 

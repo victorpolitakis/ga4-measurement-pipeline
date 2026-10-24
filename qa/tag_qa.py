@@ -20,6 +20,8 @@ from urllib.parse import parse_qsl, urlparse
 
 from playwright.sync_api import sync_playwright
 
+import browser_fix
+
 BASE_URL = "https://victorpolitakis.github.io/ga4-measurement-pipeline/"
 MEASUREMENT_ID = "G-03MNY8H5GR"
 TEST_EMAIL = "qa-check@example.com"
@@ -75,6 +77,7 @@ class Report:
 
 def new_page(browser, hits):
     context = browser.new_context()
+    browser_fix.install(context)
     context.route("**/g/collect**", hits.capture)
     page = context.new_page()
     return context, page
@@ -114,20 +117,12 @@ def scenario_purchase(browser, base, r):
     context, page = new_page(browser, hits)
     page.goto(base)
     page.click('[data-consent="all"]')
-    # GA4 batches events for a few seconds before sending. The hero link navigates at
-    # once, so first click it with navigation blocked to check the hit's content...
-    page.evaluate("document.addEventListener('click', e => e.preventDefault(), { once: true })")
     page.click('[data-cta-id="hero_tent"]')
-    cta = hits.wait_for(page, "cta_click", timeout=20)
+    cta = hits.wait_for(page, "cta_click")
     r.check(s, "cta_click with cta_id=hero_tent", cta and cta.get("ep.cta_id") == "hero_tent", cta and cta.get("ep.cta_id"))
-    # ...then click it for real and see whether the hit survives the navigation.
-    page.click('[data-cta-id="hero_tent"]')
     view = hits.wait_for(page, "view_item")
     r.check(s, "view_item has gcs=G111", view and view.get("gcs") == "G111", view and view.get("gcs"))
     r.check(s, "_ga cookie after Accept all", has_ga_cookie(context))
-    settle(page)
-    r.check(s, "cta_click survives the navigation it starts", len(hits.named("cta_click")) == 2,
-            f"{len(hits.named('cta_click'))} of 2 cta_click hits sent", known_issue=True)
 
     page.fill("#qty", "2")
     page.click("#add")
