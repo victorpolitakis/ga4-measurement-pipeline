@@ -65,10 +65,24 @@ One entry per work session: what was done, what broke, how it was fixed.
   - GA4: custom metric `item_count` registered.
 - Broke / surprised me:
   - The first QA run failed 11 checks that were fine. `time.sleep` in the polling loop blocked Playwright's sync API, so the request handler never ran while the script waited. Waiting with `page.wait_for_timeout` fixed it.
-  - `cta_click` reaches the data layer and the tag fires, but GA4 holds the hit for a few seconds to batch it, and the hero link navigates at once. In headless Chromium the hit never leaves. My own click in a normal browser on 2026-10-18 did arrive in BigQuery, so it may be specific to headless runs; the reconciliation of the 150-visitor run will show it.
+  - `cta_click` reaches the data layer and the tag fires, but GA4 holds the hit for a few seconds to batch it, and the hero link navigates at once. In headless Chromium the hit never leaves. My own click on 2026-10-18 did arrive in BigQuery, but that was in Preview (debug mode). Resolved on 2026-10-24, see below.
   - Public sample: in November 2020 `add_to_cart` (7,674) is lower than `begin_checkout` (9,546), the opposite of December. It looks like `add_to_cart` wasn't firing everywhere that month.
   - The `.env` with the Measurement Protocol secret had been saved in `site/`, the folder GitHub Pages publishes. It was git-ignored and never committed, so it was never deployed; it now sits at the repo root.
   - The `bq` CLI read the SQL files' leading `--` comment as a flag. The SQL now goes in on stdin.
   - The consent-rate query first counted events with no consent signal (before Consent Mode existed) as "not granted", which showed a 0% rate. NULL is now left out of the rate.
   - Preview sessions are attributed to `tagassistant.google.com / referral`.
+
+### 2026-10-24 — Reconciliation and the missing click events
+
+- The 23 Oct export arrived. `qa/reconcile.py` matched `view_item`, `begin_checkout`, `purchase` and `generate_lead` exactly, consented and cookieless, but found **0 of 96** `cta_click` and **0 of 58** `add_to_cart`. `qa/bq_checks.py`: 7 of 7 passed.
+- Narrowing it down, one variable at a time:
+  - headless shell and Chromium's new headless mode: both lost them;
+  - a visible Playwright window: lost them too, so not a headless issue;
+  - waiting 6 s before navigating: `add_to_cart` arrived, so GA4 sends the batch late, not never;
+  - GTM `eventCallback` before navigating: fired after 0.29 s, when the tag ran, not when the hit left, so it doesn't help;
+  - the same click in a normal browser (not driven by Playwright), with `fetch` and `sendBeacon` logged to localStorage: `cta_click` was sent as the page unloaded;
+  - a synthetic `pagehide` under Playwright: `cta_click` sent; a synthetic `visibilitychange`: not sent.
+- Cause: gtag sends its batch on `pagehide`, and Playwright-driven Chromium doesn't deliver it in time. Real visitors don't lose these events; the test harness did. Fix in `qa/browser_fix.py` (fire `pagehide` after each click and before closing a context). `tag_qa.py` now passes 21 of 21 with the navigation included, and run 2 (150 visitors, seed 43, 11:09 UTC) was made with the fix.
+- Attribution of run 1: google / cpc 11 purchases, newsletter / email 2, instagram 0, and 11 with consent denied and no source, which matches the ground truth.
+- I first explained the lower per-page-view consent rate (68.4% vs 72.7% of visitors) by "rejecters view fewer pages". A breakdown by page showed the opposite: in this run they reached checkout more often. Checked before writing it down.
 
