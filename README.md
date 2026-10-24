@@ -54,7 +54,7 @@ Consent Mode v2 in advanced mode. `site/js/consent.js` runs before GTM and sets 
 
 All traffic in the GA4 property is synthetic or from testing; no real person visits the shop. `qa/traffic.py` simulates a mock campaign, `autumn_tents`, from three sources (`google / cpc`, `newsletter / email`, `instagram / social`). Each simulated visitor gets a fresh browser, makes a random consent choice and goes some way down the funnel; some send the B2B form, one with a server error. The script writes what every visitor did to a CSV in `qa/output/`, and `qa/reconcile.py` compares that ground truth with what reached BigQuery.
 
-First run (150 visitors): 24 purchases, 13 of them with analytics consent. GA4 Realtime showed exactly those 13; the other 11 arrived as cookieless pings that can't be tied to a user.
+First run (150 visitors): 24 purchases, 13 of them with analytics consent. GA4 Realtime showed exactly those 13. In BigQuery all 24 are there, the 11 without consent as cookieless events with no source, so almost half of the campaign's purchases can't be attributed. The reconciliation also caught that every `cta_click` and `add_to_cart` from the run was missing: a quirk of Playwright-driven Chromium, which doesn't fire `pagehide`, so gtag never sent its batch. Details: [sql/own/RESULTS.md](sql/own/RESULTS.md).
 
 ## SQL
 
@@ -70,7 +70,7 @@ python3 -m venv .venv && .venv/bin/pip install -r qa/requirements.txt && .venv/b
 .venv/bin/python qa/bq_checks.py   # data quality on the BigQuery export (needs gcloud auth login)
 ```
 
-Latest `tag_qa.py` run: 21 checks passed, 0 failed, 1 known issue (a `cta_click` from a link that navigates at once is lost in headless Chromium; see the runbook).
+Latest `tag_qa.py` run: 21 checks passed, 0 failed. `qa/reconcile.py` compares a traffic run's CSV with the export; `qa/bq_checks.py`: 7 of 7 passed.
 
 ## Repository layout
 
