@@ -42,7 +42,7 @@ The ground truth agrees: 10 google purchases with Accept all plus 1 with Analyti
 
 The rate is per page view, so it depends on how many pages each group views. On the landing page it is 109 of 151 (72%), close to the share of synthetic visitors who accepted (109 of 150). Over all pages it is lower because, in this run, visitors who rejected happened to reach checkout more often (14 of 41, against 17 of 109). A per-page-view consent rate is fine for spotting a broken banner day to day, but the per-visitor rate is the one to quote.
 
-One `cart` page view of a consented visitor is missing (16 of 17), from the same pre-navigation batching as above.
+One `cart` page view of a consented visitor is missing (16 of 17), probably from the same pre-navigation issue; run 2 will show whether the fix covers it.
 
 ## Data-quality checks (`qa/bq_checks.py`, 2026-10-24)
 
