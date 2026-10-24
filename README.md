@@ -3,9 +3,10 @@
 A small, end-to-end GA4 implementation for a fictional outdoor shop, Northwind Outdoor. It starts from business requirements, turns them into a tracking plan, implements the events on a demo site through Google Tag Manager and exports the data to BigQuery for analysis.
 
 - **Demo shop:** https://victorpolitakis.github.io/ga4-measurement-pipeline/
-- **Requirements and tracking plan:** [docs/01_BRD_and_tracking_plan.md](docs/01_BRD_and_tracking_plan.md)
-- **Deployment guide:** [docs/02_deployment_guide.md](docs/02_deployment_guide.md)
-- **Troubleshooting runbook:** [docs/03_troubleshooting_runbook.md](docs/03_troubleshooting_runbook.md)
+- **Requirements (BRD):** [docs/01_BRD.md](docs/01_BRD.md)
+- **Tracking plan and data dictionary:** [docs/02_tracking_plan.md](docs/02_tracking_plan.md)
+- **Deployment guide:** [docs/03_deployment_guide.md](docs/03_deployment_guide.md)
+- **Troubleshooting runbook:** [docs/04_troubleshooting_runbook.md](docs/04_troubleshooting_runbook.md)
 - **SQL results on Google's public GA4 sample:** [sql/public/RESULTS.md](sql/public/RESULTS.md)
 - **Build log** (what broke and how it was fixed): [docs/build_log.md](docs/build_log.md)
 
@@ -34,7 +35,7 @@ Event names follow GA4 recommended events where one exists, so the built-in ecom
 | `generate_lead` | The B2B contact form is accepted by the server | `lead_type`, `value`, `currency`, no personal data |
 | `cta_click` | A hero or promo button is clicked | `cta_id`, `cta_text` |
 
-All four ecommerce events also carry `item_count`, the number of units in `items`. `page_view` and `file_download` come from the Google Analytics tag and enhanced measurement. Full definitions are in the tracking plan.
+All four ecommerce events also carry `item_count`, the number of units in `items`. `page_view` and `file_download` come from the Google Analytics tag and enhanced measurement. Full definitions are in the [tracking plan](docs/02_tracking_plan.md).
 
 ## GTM container
 
@@ -76,7 +77,7 @@ Latest `tag_qa.py` run: 21 checks passed, 0 failed. `qa/reconcile.py` compares a
 
 ```
 site/   demo shop (HTML, CSS, JS), deployed to GitHub Pages
-docs/   requirements and tracking plan, deployment guide, runbook, build log, screenshots
+docs/   BRD, tracking plan, deployment guide, runbook, build log, screenshots
 sql/    BigQuery queries: public/ on Google's sample, own/ on this project's export
 qa/     tag QA, Measurement Protocol validation, BigQuery checks, synthetic traffic
 ```

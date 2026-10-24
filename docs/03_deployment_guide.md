@@ -4,7 +4,7 @@ How to deploy this measurement setup on a site, in the order that keeps data cle
 
 ## 1. Before anything is tagged
 
-- Agree the tracking plan with the client ([01_BRD_and_tracking_plan.md](01_BRD_and_tracking_plan.md)). Every event needs a trigger condition, its parameters and an owner on the client side.
+- Agree the tracking plan with the client ([BRD](01_BRD.md), [tracking plan](02_tracking_plan.md)). Every event needs a trigger condition, its parameters and an owner on the client side.
 - Agree consent with the DPO: which signals, the default state, and basic or advanced mode. This project uses advanced mode with everything denied by default.
 - Create the GA4 property and web stream, and the GTM web container. Set GA4 data retention to 14 months; the default of 2 months cuts explorations short.
 
@@ -54,4 +54,4 @@ python3 -m venv .venv && .venv/bin/pip install -r qa/requirements.txt && .venv/b
 
 ## 6. Handover
 
-Give the client the tracking plan, the GTM version history, this guide and the [troubleshooting runbook](03_troubleshooting_runbook.md). Any later site release should be followed by a `tag_qa.py` run, because a template change can break a tag without any visible error.
+Give the client the tracking plan, the GTM version history, this guide and the [troubleshooting runbook](04_troubleshooting_runbook.md). Any later site release should be followed by a `tag_qa.py` run, because a template change can break a tag without any visible error.
